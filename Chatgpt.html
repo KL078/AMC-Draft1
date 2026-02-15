@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMC Budget 2023-24 | Public Economics Analysis</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+    <style>
+        :root {
+            --primary: #0f766e;
+            --primary-light: #ccfbf1;
+            --accent: #f97316;
+            --dark: #1e293b;
+            --mid: #64748b;
+            --light: #f1f5f9;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --sidebar-width: 260px;
+        }
+
+        html { scroll-behavior: smooth; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: var(--dark); display: flex; transition: all 0.3s; }
+
+        /* --- Sidebar --- */
+        #sidebar {
+            width: var(--sidebar-width);
+            background: var(--dark);
+            color: white;
+            padding: 80px 20px;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+        #sidebar.collapsed { left: calc(var(--sidebar-width) * -1); }
+        .nav-links { display: flex; flex-direction: column; gap: 8px; }
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 14px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .nav-links a:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-links a.active { background: var(--primary); color: white; }
+
+        /* --- Toggle Button --- */
+        #toggle-btn {
+            position: fixed;
+            left: 20px;
+            top: 20px;
+            z-index: 1100;
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar-expanded #toggle-btn { left: 280px; }
+
+        /* --- Main Content --- */
+        #main { flex: 1; padding: 100px 60px; margin-left: var(--sidebar-width); transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; }
+        #main.full-width { margin-left: 0; padding: 100px 10%; }
+        header { border-bottom: 2px solid var(--border); padding-bottom: 25px; margin-bottom: 60px; display: flex; justify-content: space-between; align-items: flex-end; }
+        header h1 { font-size: 32px; font-weight: 800; color: var(--primary); }
+        
+        section { margin-bottom: 120px; }
+        .section-title { font-size: 24px; font-weight: 700; color: var(--dark); margin-bottom: 35px; border-left: 6px solid var(--accent); padding-left: 18px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .card { background: var(--white); padding: 35px; border-radius: var(--radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        .card h3 { font-size: 17px; margin-bottom: 18px; color: var(--primary); border-bottom: 1px solid var(--light); padding-bottom: 12px; }
+        .card p { font-size: 15px; line-height: 1.8; color: var(--mid); margin-bottom: 12px; }
+        
+        .stat-tag { background: var(--primary-light); color: var(--primary); padding: 5px 12px; border-radius: 6px; font-weight: 700; font-size: 13px; }
+
+        /* --- Metrics & Charts --- */
+        .metrics-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 40px; }
+        .m-box { background: var(--white); padding: 25px; border-radius: var(--radius); text-align: center; border: 1px solid var(--border); }
+        .m-val { font-size: 22px; font-weight: 800; display: block; margin-top: 8px; }
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .chart-card { background: var(--white); padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); min-height: 520px; display: flex; flex-direction: column; }
+        .canvas-area { flex-grow: 1; position: relative; }
+
+        /* --- Critique Section --- */
+        .critique-container { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .critique-card { background: #fff; padding: 30px; border-radius: var(--radius); border-left: 5px solid #ef4444; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .critique-card h4 { font-size: 16px; color: #b91c1c; margin-bottom: 15px; font-weight: 700; }
+        .critique-card p { font-size: 14px; line-height: 1.7; color: var(--mid); }
+
+        /* --- Policy Section --- */
+        .policy-banner { background: linear-gradient(135deg, #0f766e, #134e4a); color: white; padding: 45px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; }
+
+        @media (max-width: 1200px) { #sidebar { left: -260px; } #main { margin-left: 0; padding: 80px 30px; } .grid-2, .metrics-bar, .chart-grid, .critique-container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body class="sidebar-expanded">
+
+    <button id="toggle-btn" onclick="toggleSidebar()">☰</button>
+
+    <nav id="sidebar">
+        <div class="nav-links">
+            <a onclick="scrollToSection('city-profile')">City Profile</a>
+            <a onclick="scrollToSection('urban-challenges')">Urban Challenges</a>
+            <a onclick="scrollToSection('budget-overview')">Budget Overview</a>
+            <a onclick="scrollToSection('budget-critique')">Budget Critique</a>
+            <a onclick="scrollToSection('policy-innovation')">Policy Innovation</a>
+        </div>
+    </nav>
+
+    <div id="main">
+        <header>
+            <div>
+                <h1>Ahmedabad Municipal Corporation</h1>
+                <p style="color: var(--mid); font-weight: 500; margin-top: 5px;">Public Economics Analysis | FY 2023-24</p>
+            </div>
+            <div style="text-align: right;">
+                <span class="stat-tag">AA+ (Stable) Rating</span><br>
+                <span style="font-size: 13px; color: var(--mid); margin-top: 8px; display: inline-block;">Approved Budget Analysis</span>
+            </div>
+        </header>
+
+        <section id="city-profile">
+            <h2 class="section-title">City Profile & Economic Performance</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Geography & Heritage</h3>
+                    <p>Ahmedabad is India's first <strong>UNESCO World Heritage City</strong>. Situated on the Sabarmati, it spans 505 sq. km and serves as a vital logistics node on the Delhi-Mumbai Industrial Corridor.</p>
+                    <p><strong>Human Capital:</strong> A high literacy rate of 88.3% fuels a labor market dominated by Pharma, Chemicals, and professional services.</p>
+                </div>
+                <div class="card">
+                    <h3>Economic Base</h3>
+                    <p>Known as the "Manchester of the East," the city accounts for approximately <strong>25% of Gujarat's GDP</strong>. It is currently transitioning into a hub for EV manufacturing and FinTech.</p>
+                    <p><strong>Standard of Living:</strong> Ranked 3rd in the MoHUA Ease of Living Index, the city balances rapid industrial growth with a rich cultural architectural legacy.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="urban-challenges">
+            <h2 class="section-title">Critical Urban Challenges</h2>
+            <div class="grid-2">
+                <div class="card" style="border-top: 5px solid var(--accent);">
+                    <h3>Environmental Stress</h3>
+                    <p>Groundwater extraction is at an alarming <strong>152%</strong>. This severe deficit threatens long-term water security for the city’s 8.2 million residents.</p>
+                </div>
+                <div class="card" style="border-top: 5px solid var(--accent);">
+                    <h3>Legacy Pollutants</h3>
+                    <p>The Pirana landfill is a focal point of urban neglect, acting as a major soil and air pollutant that requires capital-intensive bio-mining to reclaim for public use.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="budget-overview">
+            <h2 class="section-title">Budgetary Overview</h2>
+            <div class="metrics-bar">
+                <div class="m-box"><span style="font-size: 11px; color: var(--mid); font-weight: 600;">REVENUE INCOME</span><span class="m-val">₹7,446.00 Cr</span></div>
+                <div class="m-box"><span style="font-size: 11px; color: var(--mid); font-weight: 600;">REVENUE EXPENSE</span><span class="m-val">₹5,507.08 Cr</span></div>
+                <div class="m-box" style="border-bottom: 4px solid var(--primary);"><span style="font-size: 11px; color: var(--primary); font-weight: 600;">REVENUE SURPLUS</span><span class="m-val" style="color: var(--primary);">₹1,938.92 Cr</span></div>
+                <div class="m-box" style="background: var(--primary); color: white;"><span style="font-size: 11px; opacity: 0.8; font-weight: 600;">TOTAL BUDGET</span><span class="m-val">₹9,482.00 Cr</span></div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h4 style="font-size: 13px; color: var(--mid); margin-bottom: 25px; text-transform: uppercase;">Revenue Composition (%)</h4>
+                    <div class="canvas-area"><canvas id="revChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h4 style="font-size: 13px; color: var(--mid); margin-bottom: 25px; text-transform: uppercase;">Expenditure Allocation (%)</h4>
+                    <div class="canvas-area"><canvas id="expChart"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="budget-critique">
+            <h2 class="section-title">Critical Evaluation</h2>
+            <div class="critique-container">
+                <div class="critique-card">
+                    <h4>The "O&M" Gap in Infrastructure</h4>
+                    <p>While the budget allocates heavily to new Road and Drainage projects (₹550 Cr+), there is a persistent under-investment in <strong>Operation and Maintenance (O&M)</strong>. We risk creating a cycle of 'build-neglect-rebuild' where new assets deteriorate prematurely due to the 37% revenue drain on establishment costs.</p>
+                </div>
+                <div class="critique-card" style="border-left-color: #f97316;">
+                    <h4>FSI Over-Dependency</h4>
+                    <p>Nearly 31% of revenue is categorized as "Non-Tax," largely driven by FSI fees. This makes municipal finances dangerously sensitive to <strong>real estate cycles</strong>. A slowdown in construction could create a sudden fiscal deficit, as property tax (the more stable pillar) only accounts for 14%.</p>
+                </div>
+                <div class="critique-card" style="border-left-color: #0d9488;">
+                    <h4>Equitable Service Delivery</h4>
+                    <p>Capital works are heavily concentrated in 'Zonal Works' (₹500 Cr), but there is a lack of granular data on <strong>intra-zonal equity</strong>. Historical service gaps in the peripheral 'Eastern' wards often persist as the budget favors visible, high-impact flyover projects over last-mile water connectivity for low-income settlements.</p>
+                </div>
+                <div class="critique-card" style="border-left-color: #6366f1;">
+                    <h4>Vertical Fiscal Imbalance</h4>
+                    <p>The 16% reliance on the "Grant in Lieu of Octroi" from the State government limits <strong>local autonomy</strong>. Despite an AA+ rating, AMC remains a 'grant-seeking' entity for daily operations, rather than a fully self-sufficient city-state that can pivot quickly to localized crises.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="policy-innovation">
+            <h2 class="section-title">Strategic Policy Innovation</h2>
+            <div class="policy-banner">
+                <div style="max-width: 70%;">
+                    <h3 style="font-size: 24px; margin-bottom: 12px;">Sustainable Green Bond Issuance</h3>
+                    <p>A ₹200 Cr market-based intervention specifically targeting STP upgrades. This leverages AMC's fiscal discipline to fund environmental externalities, addressing the 152% water stress through the reuse of treated wastewater.</p>
+                </div>
+                <div style="text-align: center; background: rgba(255,255,255,0.15); padding: 25px; border-radius: 12px;">
+                    <span style="font-size: 32px; font-weight: 800; display: block;">₹200 Cr</span>
+                    <span style="font-size: 11px; text-transform: uppercase;">Green Finance</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const main = document.getElementById('main');
+            const body = document.body;
+            sidebar.classList.toggle('collapsed');
+            main.classList.toggle('full-width');
+            body.classList.toggle('sidebar-expanded');
+        }
+
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            const offset = 120;
+            const bodyRect = document.body.getBoundingClientRect().top;
+            const elementRect = element.getBoundingClientRect().top;
+            const elementPosition = elementRect - bodyRect;
+            const offsetPosition = elementPosition - offset;
+
+            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+
+            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+            const clickedLink = Array.from(document.querySelectorAll('.nav-links a')).find(a => a.getAttribute('onclick').includes(id));
+            if(clickedLink) clickedLink.classList.add('active');
+        }
+
+        Chart.register(ChartDataLabels);
+        const colors = ['#0f766e', '#115e59', '#0d9488', '#14b8a6', '#2dd4bf', '#f97316', '#fb923c', '#475569', '#64748b', '#94a3b8'];
+        const labelCfg = {
+            color: '#fff', font: { weight: 'bold', size: 10 },
+            formatter: (v, ctx) => (v * 100 / ctx.dataset.data.reduce((a, b) => a + b, 0)).toFixed(1) + "%"
+        };
+
+        new Chart(document.getElementById('revChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Non-Tax', 'Gen Tax', 'Octroi', 'Grants', 'Water', 'Arrears', 'Premium', 'Prof', 'Veh', 'Other'],
+                datasets: [{ data: [2301, 1223, 1194, 1005, 658, 500, 330, 250, 178, 807], backgroundColor: colors }]
+            },
+            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { ...labelCfg, anchor: 'end', align: 'start' } } }
+        });
+
+        new Chart(document.getElementById('expChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Salaries', 'Grants', 'Service', 'Repairs', 'Dev Works', 'Power', 'Loans', 'Admin', 'Health', 'Other'],
+                datasets: [{ data: [2062, 1446, 672, 592, 500, 339, 241, 153, 110, 392], backgroundColor: colors }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, layout: { padding: 25 }, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15, font: { size: 10.5 } } }, datalabels: labelCfg } }
+        });
+    </script>
+</body>
+</html>
